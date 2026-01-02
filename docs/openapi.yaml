@@ -1,0 +1,525 @@
+openapi: 3.0.3
+info:
+  title: Jokes and Math API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+paths:
+  /jokes:
+    get:
+      summary: Get a random joke
+      responses:
+        "200":
+          description: Random joke
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JokeResponse"
+              example:
+                joke: Chuck Norris counted to infinity. Twice.
+    post:
+      summary: Store a joke
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JokeInput"
+            example:
+              text: A stored joke
+      responses:
+        "201":
+          description: Joke stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Joke"
+              example:
+                id: 1
+                text: A stored joke
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Validation error
+  /jokes/paired:
+    get:
+      summary: Get 5 paired jokes (Chuck and Dad)
+      responses:
+        "200":
+          description: Paired jokes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PairedJoke"
+              example:
+                - chuck: Chuck Norris counted to infinity. Twice.
+                  dad: Why did the math book look sad? Because it had too many problems.
+                  combined: Chuck Norris counted to infinity. Also, the math book had too many problems.
+        "502":
+          description: Upstream error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Failed to fetch jokes
+  /jokes/{provider}:
+    get:
+      summary: Get a random joke from a provider
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [chuck, dad]
+      responses:
+        "200":
+          description: Random joke
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JokeResponse"
+              example:
+                joke: I used to play piano by ear, but now I use my hands.
+        "400":
+          description: Invalid provider
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Invalid provider
+  /jokes/{number}:
+    put:
+      summary: Update a stored joke
+      parameters:
+        - name: number
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JokeInput"
+            example:
+              text: Updated joke text
+      responses:
+        "200":
+          description: Joke updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Joke"
+              example:
+                id: 1
+                text: Updated joke text
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Validation error
+        "404":
+          description: Joke not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Joke not found
+    delete:
+      summary: Delete a stored joke
+      parameters:
+        - name: number
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Joke deleted
+        "404":
+          description: Joke not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Joke not found
+  /math/lcm:
+    get:
+      summary: Get least common multiple
+      parameters:
+        - name: numbers
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "4,6,8"
+      responses:
+        "200":
+          description: LCM response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LcmResponse"
+              example:
+                lcm: 24
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Validation error
+  /math/increment:
+    get:
+      summary: Increment a number
+      parameters:
+        - name: number
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Increment response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncrementResponse"
+              example:
+                result: 6
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Validation error
+  /alert:
+    post:
+      summary: Send an alert notification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AlertInput"
+            example:
+              recipient: user@example.com
+              message: Alert message
+      responses:
+        "202":
+          description: Alert sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AlertResponse"
+              example:
+                status: sent
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /auth/login:
+    post:
+      summary: Login and get JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+            example:
+              username: manolito
+              password: secret123
+      responses:
+        "200":
+          description: Auth token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthToken"
+              example:
+                token: <JWT>
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /auth/external/callback:
+    get:
+      summary: Mock external OAuth2 callback
+      parameters:
+        - name: provider
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [google]
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+            example: valid-google-code
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Auth token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthToken"
+              example:
+                token: <JWT>
+        "400":
+          description: Invalid provider or missing params
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Invalid provider
+        "401":
+          description: Invalid code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Invalid code
+        "500":
+          description: Failed to generate token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /user:
+    get:
+      summary: Protected endpoint for role user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /admin:
+    get:
+      summary: Protected endpoint for role admin
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Joke:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        text:
+          type: string
+          example: A stored joke
+      required:
+        - id
+        - text
+    JokeInput:
+      type: object
+      properties:
+        text:
+          type: string
+          example: A stored joke
+      required:
+        - text
+    JokeResponse:
+      type: object
+      properties:
+        joke:
+          type: string
+          example: A random joke
+      required:
+        - joke
+    PairedJoke:
+      type: object
+      properties:
+        chuck:
+          type: string
+          example: Chuck Norris counted to infinity. Twice.
+        dad:
+          type: string
+          example: Why did the math book look sad? Because it had too many problems.
+        combined:
+          type: string
+          example: Chuck Norris counted to infinity. Also, the math book had too many problems.
+      required:
+        - chuck
+        - dad
+        - combined
+    LcmResponse:
+      type: object
+      properties:
+        lcm:
+          type: integer
+          example: 24
+      required:
+        - lcm
+    IncrementResponse:
+      type: object
+      properties:
+        result:
+          type: integer
+          example: 6
+      required:
+        - result
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Validation error
+      required:
+        - error
+    AlertInput:
+      type: object
+      properties:
+        recipient:
+          type: string
+          example: user@example.com
+        message:
+          type: string
+          example: Alert message
+      required:
+        - recipient
+        - message
+    AlertResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: sent
+      required:
+        - status
+    LoginInput:
+      type: object
+      properties:
+        username:
+          type: string
+          example: manolito
+        password:
+          type: string
+          example: secret123
+      required:
+        - username
+        - password
+    AuthToken:
+      type: object
+      properties:
+        token:
+          type: string
+          example: <JWT>
+      required:
+        - token
+    AuthClaims:
+      type: object
+      properties:
+        sub:
+          type: string
+          example: "1"
+        name:
+          type: string
+          example: Manolito
+        email:
+          type: string
+          example: manolito@example.com
+        role:
+          type: string
+          enum: [admin, user]
+        iat:
+          type: integer
+          description: Issued at (unix time, seconds)
+          example: 1700000000
+        exp:
+          type: integer
+          description: Expiration (unix time, seconds)
+          example: 1700003600
+      required:
+        - sub
+        - name
+        - email
+        - role
+        - iat
+        - exp
+    AuthUserResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/AuthClaims"
+      required:
+        - user
